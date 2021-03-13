@@ -55,12 +55,13 @@ def email_access_code(email_addr, pw, code, port):
 @click.option("--smtp_port", default=1025, help="Proton SMTP Bridge port (defaults to 1025)")
 def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
     cache = shelve.open(cache_file)    
-    old_code = cache.get("code", None)
+    old_code_hash = cache.get("code_hash", None)
 
     new_code = get_access_code(urbit_port)
+    new_code_hash = hash(new_code)
     
-    if new_code != old_code:
-        cache["code"] = new_code
+    if new_code_hash != old_code_hash:
+        cache["code_hash"] = new_code_hash
         cache.close()
 
         if password == None:
