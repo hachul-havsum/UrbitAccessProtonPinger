@@ -20,4 +20,5 @@ To use the pinger, follow these steps:
 
 > 0,10,20,30,40,50 * * * * /home/user/urbit/git/UrbitAccessProtonPinger/UrbitAccessProtonPinger.py \\
 >  --cache_file ~/.urbit_pinger --email addr@protonmail.com --password bridge_smtp_pw
-      
+
+Remember: the `password` and  `smtp_port` arguments are the password and port from the ProtonMail SMTP Bridge utility.
