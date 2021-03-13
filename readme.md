@@ -1,3 +1,4 @@
+
 ## Urbit Access Proton Pinger
 
 The purpose of the UrbitAccessProtonPinger is to notify an Urbit ship owner of the Landscape access code via a secure method.
@@ -16,7 +17,7 @@ To use the pinger, follow these steps:
 5) Add the pinger as a `cron` job. The following is a quick example of one way to accomplish this:
      1) From a terminal window, use the command `crontab -e`. Note you don't have to be superuser to edit the crontab file for your userid.
      2) Add a job line for the pinger such as this one, that checks every 10 minutes for a change in status:
-     ```0,10,20,30,40,50 * * * * /home/user/urbit/git/UrbitAccessProtonPinger/UrbitAccessProtonPinger.py
-        --cache_file ~/.urbit_pinger --email ddr@protonmail.com --password bridge_smtp_pw```
-    
+
+> 0,10,20,30,40,50 * * * * /home/user/urbit/git/UrbitAccessProtonPinger/UrbitAccessProtonPinger.py \\
+>  --cache_file ~/.urbit_pinger --email ddr@protonmail.com --password bridge_smtp_pw
       
