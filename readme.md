@@ -19,5 +19,5 @@ To use the pinger, follow these steps:
      2) Add a job line for the pinger such as this one, that checks every 10 minutes for a change in status:
 
 > 0,10,20,30,40,50 * * * * /home/user/urbit/git/UrbitAccessProtonPinger/UrbitAccessProtonPinger.py \\
->  --cache_file ~/.urbit_pinger --email ddr@protonmail.com --password bridge_smtp_pw
+>  --cache_file ~/.urbit_pinger --email addr@protonmail.com --password bridge_smtp_pw
       
