@@ -3,6 +3,18 @@
 
 The purpose of the UrbitAccessProtonPinger is to notify an Urbit ship owner of the Landscape access code via a secure method.
 
+    hachul-havsum@urbit:~/urbit/git/UrbitAccessProtonPinger$ ./UrbitAccessProtonPinger.py --help
+    Usage: UrbitAccessProtonPinger.py [OPTIONS]
+
+    Options:
+      --cache_file TEXT     Filename for cache storage  [required]
+      --email TEXT          Email address to send/recv  [required]
+      --password TEXT       Proton SMTP Bridge Password (omit to prompt)
+      --urbit_port INTEGER  Urbit loopback port (defaults to 12321)
+      --smtp_port INTEGER   Proton SMTP Bridge port (defaults to 1025)
+      --help                Show this message and exit.
+
+
 The pinger runs as a `cron` job and periodically queries the urbit `dojo` via the loopback mechanism to obtain the current value of the access code. By use of a local hashed caching mechanism, only when the value has changed will the user be notified of the new value.
 
 The notification method is to send an encrypted email using a single protonmail.com email address as the sender and receiver.
