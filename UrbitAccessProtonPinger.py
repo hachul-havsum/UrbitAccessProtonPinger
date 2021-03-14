@@ -3,6 +3,7 @@ import click
 import getpass, sys
 import requests
 import shelve
+import hashlib
 
 HEADERS = {'Content-Type': 'application/json'}
 PAYLOAD = '{ "source": { "dojo": "+code" }, "sink" : {"stdout": null} }'
@@ -58,7 +59,7 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
     old_code_hash = cache.get("code_hash", None)
 
     new_code = get_access_code(urbit_port)
-    new_code_hash = hash(new_code)
+    new_code_hash = hashlib.md5(new_code.encode("utf-8")).hexdigest()
     
     if new_code_hash != old_code_hash:
         cache["code_hash"] = new_code_hash
