@@ -51,7 +51,7 @@ def email_access_code(email_addr, pw, code, hsh, port):
     msg['From'] = email_addr
     msg['To'] = email_addr
     msg['Subject'] = 'Urbit Status'
-    message = 'Urbit Access Code:\n%s\nUrbit Hash:\n%s\n' % (code, hsh)
+    message = 'Urbit Access Code:\n%s\n\nUrbit Hash:\n%s\n' % (code, hsh)
     msg.attach(MIMEText(message))
     mailserver = smtplib.SMTP('localhost',port)
     mailserver.login(email_addr, pw)
