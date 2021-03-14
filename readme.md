@@ -1,7 +1,7 @@
 
 ## Urbit Access Proton Pinger
 
-The purpose of the UrbitAccessProtonPinger is to notify an Urbit ship owner of the Landscape access code via a secure method.
+The purpose of the UrbitAccessProtonPinger is to notify an Urbit ship owner of the Landscape access code and base hash via a secure method.
 
     hachul-havsum@urbit:~/urbit/git/UrbitAccessProtonPinger$ ./UrbitAccessProtonPinger.py --help
     Usage: UrbitAccessProtonPinger.py [OPTIONS]
@@ -15,7 +15,7 @@ The purpose of the UrbitAccessProtonPinger is to notify an Urbit ship owner of t
       --help                Show this message and exit.
 
 
-The pinger runs as a `cron` job and periodically queries the urbit `dojo` via the loopback mechanism to obtain the current value of the access code. By use of a local hashed caching mechanism, only when the value has changed will the user be notified of the new value.
+The pinger runs as a `cron` job and periodically queries the urbit `dojo` via the loopback mechanism to obtain the current value of the urbit information (access code and base hash). By use of a local hashed caching mechanism, only when the values have changed will the user be notified of the new values.
 
 The notification method is to send an encrypted email using a single protonmail.com email address as the sender and receiver.
 
