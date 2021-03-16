@@ -85,7 +85,7 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
        new_name_hash != old_name_hash:
         cache["code_hash"] = new_code_hash
         cache["hsh_hash"] = new_hsh_hash
-        cache["name_hash"] = new_hsh_hash        
+        cache["name_hash"] = new_name_hash 
         cache.close()
 
         if password == None:
