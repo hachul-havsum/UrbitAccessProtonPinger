@@ -7,30 +7,29 @@ import hashlib
 import re
 
 HEADERS = {'Content-Type': 'application/json'}
-PAYLOAD_CODE = '{ "source": { "dojo": "+code" }, "sink" : {"stdout": null} }'
-PAYLOAD_HASH = '{ "source": { "dojo": "+trouble" }, "sink" : {"stdout": null} }'
-
-REGEX = re.compile(r'%base-hash ~\[[0-9A-Za-z]{4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]')
-
+PAYLOAD = '{ "source": { "dojo": "%s" }, "sink" : {"stdout": null} }'
 URL = "http://localhost:%d"
 
+class UrbitQuery(object):
+    def process(self, port):
+        r = requests.get(URL % port, headers=HEADERS,data=PAYLOAD % self._query)
+        result = None
+        if r.status_code == 200:
+            result = self._regex.findall(r.text)[0]
+        return result
+
+class AccessCode(UrbitQuery):
+    _regex = re.compile(r'"((?:[a-z]{6}-){3}[a-z]{6})\\n"')
+    _query = "+code"
+
+class BaseHash(UrbitQuery):
+    _regex = re.compile(r'%base-hash ~\[[0-9A-Za-z]{4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]')
+    _query = "+trouble"
+
+URBIT_QUERIES = (AccessCode, BaseHash)
+
 def get_urbit_info(port):
-    r = requests.get(URL % port, headers=HEADERS,data=PAYLOAD_CODE)
-
-    code, hsh = None, None
-
-    if r.status_code == 200:
-        code = r.text
-        code = code.replace('"', "")
-        code = code.replace("\\n", "")
-    
-    r = requests.get(URL % port, headers=HEADERS,data=PAYLOAD_HASH)
-
-    if r.status_code == 200:
-        hsh = REGEX.findall(r.text)[0]
-
-    return code, hsh
-
+    return tuple([fn().process(port) for fn in URBIT_QUERIES])
 
 def email_access_code(email_addr, pw, code, hsh, port):
     # From Stackoverflow:
@@ -66,15 +65,19 @@ def email_access_code(email_addr, pw, code, hsh, port):
 @click.option("--urbit_port", default=12321, help="Urbit loopback port (defaults to 12321)")
 @click.option("--smtp_port", default=1025, help="Proton SMTP Bridge port (defaults to 1025)")
 def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
-    cache = shelve.open(cache_file)    
-    old_code_hash = cache.get("code_hash", None)
+    # Open our cache of previously polled values
+    cache = shelve.open(cache_file)
 
+    # read the old values
+    old_code_hash = cache.get("code_hash", None)
     old_hsh_hash = cache.get("hsh_hash", None)
 
+    # get the new values and create their hashes
     new_code, new_hsh = get_urbit_info(urbit_port)
     new_code_hash = hashlib.md5(new_code.encode("utf-8")).hexdigest()
     new_hsh_hash = hashlib.md5(new_hsh.encode("utf-8")).hexdigest()
 
+    # if either of them changed, update the cache and send the alert
     if new_code_hash != old_code_hash or new_hsh_hash != old_hsh_hash:
         cache["code_hash"] = new_code_hash
         cache["hsh_hash"] = new_hsh_hash
