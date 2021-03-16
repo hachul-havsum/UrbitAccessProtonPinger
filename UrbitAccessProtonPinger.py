@@ -13,25 +13,30 @@ URL = "http://localhost:%d"
 class UrbitQuery(object):
     def process(self, port):
         r = requests.get(URL % port, headers=HEADERS,data=PAYLOAD % self._query)
-        result = None
+        result = []
         if r.status_code == 200:
-            result = self._regex.findall(r.text)[0]
+            for regex in self._regex:
+                result.append(regex.findall(r.text)[0])
         return result
 
 class AccessCode(UrbitQuery):
-    _regex = re.compile(r'"((?:[a-z]{6}-){3}[a-z]{6})\\n"')
+    _regex = (re.compile(r'"((?:[a-z]{6}-){3}[a-z]{6})\\n"'),)
     _query = "+code"
 
-class BaseHash(UrbitQuery):
-    _regex = re.compile(r'%base-hash ~\[[0-9A-Za-z]{4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]')
+class BaseHashShipName(UrbitQuery):
+    _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]{4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
+              re.compile(r'%our ship=(~[a-z]{6}-[a-z]{6}) point'))
     _query = "+trouble"
 
-URBIT_QUERIES = (AccessCode, BaseHash)
+URBIT_QUERIES = (AccessCode, BaseHashShipName)
 
 def get_urbit_info(port):
-    return tuple([fn().process(port) for fn in URBIT_QUERIES])
+    results = []
+    for query in URBIT_QUERIES:
+        results.append(query().process(port))
+    return tuple([item for sublist in results for item in sublist])
 
-def email_access_code(email_addr, pw, code, hsh, port):
+def email_access_code(email_addr, pw, code, hsh, name, port):
     # From Stackoverflow:
     # https://stackoverflow.com/questions/56330521/sending-an-email-with-python-from-a-protonmail-account-smtp-library
 
@@ -42,8 +47,8 @@ def email_access_code(email_addr, pw, code, hsh, port):
     msg = MIMEMultipart()
     msg['From'] = email_addr
     msg['To'] = email_addr
-    msg['Subject'] = 'Urbit Status'
-    message = 'Urbit Access Code:\n%s\n\nUrbit Hash:\n%s\n' % (code, hsh)
+    msg['Subject'] = 'Urbit Status (%s)' % name
+    message = 'Urbit Ship Name:\n%s\n\nUrbit Access Code:\n%s\n\nUrbit Hash:\n%s\n' % (name, code, hsh)
     msg.attach(MIMEText(message))
     mailserver = smtplib.SMTP('localhost',port)
     mailserver.login(email_addr, pw)
@@ -64,16 +69,23 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
     # read the old values
     old_code_hash = cache.get("code_hash", None)
     old_hsh_hash = cache.get("hsh_hash", None)
+    old_name_hash = cache.get("name_hash", None)
 
-    # get the new values and create their hashes
-    new_code, new_hsh = get_urbit_info(urbit_port)
+    # get the new values
+    new_code, new_hsh, new_name = get_urbit_info(urbit_port)
+
+    # create their hashes
     new_code_hash = hashlib.md5(new_code.encode("utf-8")).hexdigest()
     new_hsh_hash = hashlib.md5(new_hsh.encode("utf-8")).hexdigest()
+    new_name_hash = hashlib.md5(new_name.encode("utf-8")).hexdigest()
 
     # if either of them changed, update the cache and send the alert
-    if new_code_hash != old_code_hash or new_hsh_hash != old_hsh_hash:
+    if new_code_hash != old_code_hash or \
+       new_hsh_hash != old_hsh_hash  or  \
+       new_name_hash != old_name_hash:
         cache["code_hash"] = new_code_hash
         cache["hsh_hash"] = new_hsh_hash
+        cache["name_hash"] = new_hsh_hash        
         cache.close()
 
         if password == None:
@@ -81,7 +93,7 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
             sys.stdout.flush()
             password = getpass.getpass()
 
-        email_access_code(email, password, new_code, new_hsh, smtp_port)
+        email_access_code(email, password, new_code, new_hsh, new_name, smtp_port)
     else:
         cache.close()
 
