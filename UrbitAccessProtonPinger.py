@@ -36,15 +36,8 @@ def email_access_code(email_addr, pw, code, hsh, port):
     # https://stackoverflow.com/questions/56330521/sending-an-email-with-python-from-a-protonmail-account-smtp-library
 
     import smtplib 
-    try:
-        from email.MIMEMultipart import MIMEMultipart 
-    except:
-        from email.mime.multipart import MIMEMultipart
-
-    try:    
-        from email.MIMEText import MIMEText
-    except:
-        from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
 
     msg = MIMEMultipart()
     msg['From'] = email_addr
