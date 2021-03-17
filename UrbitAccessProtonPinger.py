@@ -11,13 +11,18 @@ PAYLOAD = '{ "source": { "dojo": "%s" }, "sink" : {"stdout": null} }'
 URL = "http://localhost:%d"
 
 class UrbitQuery(object):
+    @staticmethod
+    def _cleanup(input):
+        return input
+
     def process(self, port):
         r = requests.get(URL % port, headers=HEADERS,data=PAYLOAD % self._query)
         result = []
         if r.status_code == 200:
             for regex in self._regex:
-                result.append(regex.findall(r.text)[0])
+                result.append(self._cleanup(regex.findall(r.text)[0]))
         return result
+
 
 class AccessCode(UrbitQuery):
     _query = "+code"
@@ -31,6 +36,7 @@ class BaseHashShipName(UrbitQuery):
 class Tally(UrbitQuery):
     _query = "+tally |"
     _regex = (re.compile(r'"\\n([\s\S]+)\\n"'),)
+    _cleanup = staticmethod(lambda x: x.replace(r"\n", "\n"))
 
 URBIT_QUERIES = (AccessCode, BaseHashShipName, Tally)
 
@@ -96,9 +102,6 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
             print("Email ", end="")
             sys.stdout.flush()
             password = getpass.getpass()
-
-        # clean up the tally
-        tally = tally.replace(r"\n", "\n")
 
         email_access_code(email, password, new_code, new_hsh, new_name, tally, smtp_port)
     else:
