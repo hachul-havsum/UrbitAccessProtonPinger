@@ -28,7 +28,11 @@ class BaseHashShipName(UrbitQuery):
     _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]{4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
               re.compile(r'%our ship=(~[a-z]{6}-[a-z]{6}) point'))
 
-URBIT_QUERIES = (AccessCode, BaseHashShipName)
+class Tally(UrbitQuery):
+    _query = "+tally |"
+    _regex = (re.compile(r'"\\n([\s\S]+)\\n"'),)
+
+URBIT_QUERIES = (AccessCode, BaseHashShipName, Tally)
 
 def get_urbit_info(port):
     results = []
@@ -36,7 +40,7 @@ def get_urbit_info(port):
         results.append(query().process(port))
     return tuple([item for sublist in results for item in sublist])
 
-def email_access_code(email_addr, pw, code, hsh, name, port):
+def email_access_code(email_addr, pw, code, hsh, name, tally, port):
     # From Stackoverflow:
     # https://stackoverflow.com/questions/56330521/sending-an-email-with-python-from-a-protonmail-account-smtp-library
 
@@ -48,7 +52,7 @@ def email_access_code(email_addr, pw, code, hsh, name, port):
     msg['From'] = email_addr
     msg['To'] = email_addr
     msg['Subject'] = 'Urbit Status (%s)' % name
-    message = 'Urbit Ship Name:\n%s\n\nUrbit Access Code:\n%s\n\nUrbit Hash:\n%s\n' % (name, code, hsh)
+    message = 'Urbit Ship Name:\n%s\n\nUrbit Access Code:\n%s\n\nUrbit Hash:\n%s\n\nUrbit Tally:\n%s' % (name, code, hsh, tally)
     msg.attach(MIMEText(message))
     mailserver = smtplib.SMTP('localhost',port)
     mailserver.login(email_addr, pw)
@@ -72,7 +76,7 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
     old_name_hash = cache.get("name_hash", None)
 
     # get the new values
-    new_code, new_hsh, new_name = get_urbit_info(urbit_port)
+    new_code, new_hsh, new_name, tally = get_urbit_info(urbit_port)
 
     # create their hashes
     new_code_hash = hashlib.md5(new_code.encode("utf-8")).hexdigest()
@@ -93,7 +97,10 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
             sys.stdout.flush()
             password = getpass.getpass()
 
-        email_access_code(email, password, new_code, new_hsh, new_name, smtp_port)
+        # clean up the tally
+        tally = tally.replace(r"\n", "\n")
+
+        email_access_code(email, password, new_code, new_hsh, new_name, tally, smtp_port)
     else:
         cache.close()
 
