@@ -20,13 +20,13 @@ class UrbitQuery(object):
         return result
 
 class AccessCode(UrbitQuery):
-    _regex = (re.compile(r'"((?:[a-z]{6}-){3}[a-z]{6})\\n"'),)
     _query = "+code"
+    _regex = (re.compile(r'"((?:[a-z]{6}-){3}[a-z]{6})\\n"'),)
 
 class BaseHashShipName(UrbitQuery):
+    _query = "+trouble"    
     _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]{4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
               re.compile(r'%our ship=(~[a-z]{6}-[a-z]{6}) point'))
-    _query = "+trouble"
 
 URBIT_QUERIES = (AccessCode, BaseHashShipName)
 
