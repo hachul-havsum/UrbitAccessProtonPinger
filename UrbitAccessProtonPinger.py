@@ -20,7 +20,9 @@ class UrbitQuery(object):
         result = []
         if r.status_code == 200:
             for regex in self._regex:
-                result.append(self._cleanup(regex.findall(r.text)[0]))
+                item = self._cleanup(regex.findall(r.text)[0])
+                result.append(item)
+                print("Found:", item)
         return result
 
 
@@ -30,7 +32,7 @@ class AccessCode(UrbitQuery):
 
 class BaseHashShipName(UrbitQuery):
     _query = "+trouble"    
-    _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]*\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
+    _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]{1,4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
               re.compile(r'%our ship=(~[a-z]{6}-[a-z]{6}) point'))
 
 class Tally(UrbitQuery):
@@ -43,8 +45,8 @@ URBIT_QUERIES = (AccessCode, BaseHashShipName, Tally)
 def get_urbit_info(port):
     results = []
     for query in URBIT_QUERIES:
-        results.append(query().process(port))
-    return tuple([item for sublist in results for item in sublist])
+        results.extend(query().process(port))
+    return tuple(results)
 
 def email_access_code(email_addr, pw, code, hsh, name, tally, port):
     # From Stackoverflow:
