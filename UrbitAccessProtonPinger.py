@@ -30,7 +30,7 @@ class AccessCode(UrbitQuery):
 
 class BaseHashShipName(UrbitQuery):
     _query = "+trouble"    
-    _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]{4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
+    _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]*\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
               re.compile(r'%our ship=(~[a-z]{6}-[a-z]{6}) point'))
 
 class Tally(UrbitQuery):
