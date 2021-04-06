@@ -48,7 +48,7 @@ def get_urbit_info(port):
         results.extend(query().process(port))
     return tuple(results)
 
-def email_access_code(email_addr, pw, code, hsh, name, tally, port):
+def email_access_code(from_email_addr, to_email_addr, pw, code, hsh, name, tally, port):
     # From Stackoverflow:
     # https://stackoverflow.com/questions/56330521/sending-an-email-with-python-from-a-protonmail-account-smtp-library
 
@@ -57,24 +57,29 @@ def email_access_code(email_addr, pw, code, hsh, name, tally, port):
     from email.mime.text import MIMEText
 
     msg = MIMEMultipart()
-    msg['From'] = email_addr
-    msg['To'] = email_addr
+    msg['From'] = from_email_addr
+    msg['To'] = to_email_addr
     msg['Subject'] = 'Urbit Status (%s)' % name
     message = 'Urbit Ship Name:\n%s\n\nUrbit Access Code:\n%s\n\nUrbit Hash:\n%s\n\nUrbit Tally:\n%s' % (name, code, hsh, tally)
     msg.attach(MIMEText(message))
     mailserver = smtplib.SMTP('localhost',port)
-    mailserver.login(email_addr, pw)
-    mailserver.sendmail(email_addr,email_addr,msg.as_string())
+    mailserver.login(from_email_addr, pw)
+    mailserver.sendmail(from_email_addr, to_email_addr,msg.as_string())
     mailserver.quit()
     return
 
 @click.command()
 @click.option("--cache_file", required=True, help="Filename for cache storage")
-@click.option("--email", prompt=True, required=True, help="Email address to send/recv")
+@click.option("--email", prompt=True, required=True, help="Email address to send FROM")
+@click.option("--to_email", default=None, help="Email address to send TO")
 @click.option("--password", default=None, help="Proton SMTP Bridge Password (omit to prompt)")
 @click.option("--urbit_port", default=12321, help="Urbit loopback port (defaults to 12321)")
 @click.option("--smtp_port", default=1025, help="Proton SMTP Bridge port (defaults to 1025)")
-def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
+def UrbitAccessProtonPinger(cache_file, email, to_email, password, urbit_port, smtp_port):
+    # If they don't specify a to email address, send to the from email address to itself
+    if to_email == None:
+        to_email = email
+
     # Open our cache of previously polled values
     cache = shelve.open(cache_file)
 
@@ -105,7 +110,7 @@ def UrbitAccessProtonPinger(cache_file, email, password, urbit_port, smtp_port):
             sys.stdout.flush()
             password = getpass.getpass()
 
-        email_access_code(email, password, new_code, new_hsh, new_name, tally, smtp_port)
+        email_access_code(email, to_email, password, new_code, new_hsh, new_name, tally, smtp_port)
     else:
         cache.close()
 
