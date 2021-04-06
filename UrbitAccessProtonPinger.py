@@ -33,7 +33,7 @@ class AccessCode(UrbitQuery):
 class BaseHashShipName(UrbitQuery):
     _query = "+trouble"    
     _regex = (re.compile(r'%base-hash ~\[[0-9A-Za-z]{1,4}\.(?:[0-9A-Za-z]{5}\.){9}([0-9A-Za-z]{5})\]'),
-              re.compile(r'%our\s*ship=(~[a-z]{6}(?:-[a-z]{6}-[a-z]{6}){0,1}-[a-z]{6}(?:--[a-z]{6}-[a-z]{6}-[a-z]{6}-[a-z]{6}){0,1})'))
+              re.compile(r'%our\s*ship=(~[a-z]{6}(?:(?:-[a-z]{6}-[a-z]{6}){0,1}-[a-z]{6}(?:--[a-z]{6}-[a-z]{6}-[a-z]{6}-[a-z]{6}){0,1}){0,1})'))
 
 class Tally(UrbitQuery):
     _query = "+tally |"
